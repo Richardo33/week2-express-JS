@@ -1,0 +1,16 @@
+{
+  "name": "personal-web",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "type": "module",
+  "author": "Richard",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^5.1.0",
+    "hbs": "^4.2.0"
+  }
+}

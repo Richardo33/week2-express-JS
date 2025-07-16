@@ -1,0 +1,268 @@
+.form {
+  margin-top: 2em;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+form {
+  /* background-color: ; aqua*/
+  padding: 30px;
+  border-radius: 8px;
+  width: 600px;
+  max-width: 90%;
+  margin-bottom: 5em;
+  /* display: flex; */
+}
+
+label {
+  display: block;
+  margin-top: 20px;
+  margin-bottom: 5px;
+  font-weight: bold;
+  /* background-color: aqua; */
+}
+
+input[type="text"],
+input[type="date"],
+select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+input[type="file"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 14px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 30px;
+  margin-top: 10px;
+  margin-bottom: 15px;
+  max-width: 400px;
+}
+
+.checkbox-group label {
+  width: calc(50% - 15px);
+  display: flex;
+  align-items: center;
+  font-weight: normal;
+  gap: 10px;
+}
+
+.date-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.date-field {
+  flex: 1;
+}
+
+.date-field label {
+  margin-bottom: 5px;
+  /* display: block; */
+}
+
+textarea {
+  height: 100px;
+  /* resize: vertical; */
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 14px;
+  resize: none;
+}
+
+.submit-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+input[type="submit"] {
+  width: auto;
+  padding: 10px 50px;
+  background-color: black;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+input[type="submit"]:hover {
+  background-color: white;
+  color: black;
+}
+
+.preview {
+  background-color: #f8f8f8;
+  width: 100%;
+  padding: 1em;
+}
+
+h2 {
+  margin-top: 2em;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+.listProject {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 80px;
+  padding: 0 60px 0;
+  box-sizing: border-box;
+  justify-content: space-around;
+  /* padding: 20px 0; */
+  /* background-color: aqua; */
+  /* margin: 0 20px 0; */
+}
+
+.card {
+  display: flex;
+  width: 400px;
+  margin: 3em 0 2em;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  font-family: Arial, sans-serif;
+  flex-direction: column;
+  /* min-height: 500px; */
+  /* background-color: aqua; */
+}
+
+.card:hover {
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+}
+
+.card-image {
+  width: 100%;
+  height: 250px;
+  object-fit: contain;
+  object-position: center;
+  background-color: #f2f2f2;
+  display: block;
+  border-radius: 8px;
+}
+
+.card-content {
+  padding: 15px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-height: 250px;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0 0 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-time {
+  font-size: 14px;
+  color: gray;
+  margin-bottom: 10px;
+}
+
+.card-description {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
+  text-align: justify;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+.card-bottom {
+  margin-top: auto;
+}
+
+.card-tech {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.card-tech img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  /* border-radius: 20px; */
+}
+
+/* Tombol container */
+.card-actions {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+/* Tombol edit dan delete */
+.card-actions .edit-btn,
+.card-actions .delete-btn {
+  flex: 1; /* agar sama besar */
+  padding: 10px;
+  font-size: 13px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+/* Warna tombol edit */
+.card-actions .edit-btn {
+  background-color: black;
+  color: white;
+}
+
+/* Warna tombol delete */
+.card-actions .delete-btn {
+  background-color: black;
+  color: white;
+}
+
+@media (max-width: 425px) {
+  .date-container {
+    display: flex !important; /* Tambahkan ini */
+    flex-direction: column !important;
+    gap: 20px;
+  }
+}
