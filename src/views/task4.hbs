@@ -8,6 +8,8 @@
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         rel="stylesheet"
     />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
     <style>
         body {
         background-color: #dce0e4;
@@ -61,9 +63,34 @@
               <a class="nav-link" href="task4">My Project</a>
             </li>
           </ul>
-          <form class="d-flex">
+          <div class="d-flex align-items-center gap-3">
             <a href="/task3" class="btn btn-outline-dark">Contact Me</a>
-          </form>
+            {{#if user}}
+              <div class="dropdown">
+                <button
+                  class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <img
+                    src="/assets/uploads/Johan.jpeg"
+                    alt="Profile"
+                    style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; margin-right: 8px;"
+                  />
+                  {{user.name}}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><span class="dropdown-item-text text-muted">{{user.email}}</span></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item text-danger" href="/logout">Logout</a></li>
+                </ul>
+              </div>
+            {{else}}
+              <a href="/login" class="btn btn-outline-dark">Login</a>
+            {{/if}}
+          </div>
+
         </div>
       </div>
     </nav>
@@ -203,7 +230,17 @@
                     {{{techHTML}}}
                   </div>
                   <div class="d-flex gap-2">
-                    <button class="btn btn-outline-dark flex-fill edit-btn">Edit</button>
+                    <button
+                      class="btn btn-outline-dark flex-fill edit-btn"
+                      data-id="{{project_id}}"
+                      data-name="{{project_name}}"
+                      data-start="{{start_date}}"
+                      data-end="{{end_date}}"
+                      data-description="{{description}}"
+                      data-tech="{{techHTML}}"
+                    >
+                      Edit
+                    </button>
                     <form class="d-flex flex-fill" action="/task4/delete/{{project_id}}" method="POST" onsubmit="return confirm('Delete this project?');">
                       <button class="btn btn-outline-danger flex-fill delete-btn">Delete</button>
                     </form>
@@ -220,9 +257,117 @@
       </div>
     </div>
 
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form id="editForm" method="POST" enctype="multipart/form-data">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel">Edit Project</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="_method" value="PATCH" />
+          <input type="hidden" id="editProjectId" name="projectId" />
+          
+          <div class="mb-3">
+            <label class="form-label">Project Name</label>
+            <input type="text" class="form-control" id="editProjectName" name="projectName" required>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col">
+              <label class="form-label">Start Date</label>
+              <input type="date" class="form-control" id="editStartDate" name="startDate" required>
+            </div>
+            <div class="col">
+              <label class="form-label">End Date</label>
+              <input type="date" class="form-control" id="editEndDate" name="endDate" required>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" id="editDescription" name="description" rows="3" required></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Technologies</label>
+            <div class="form-check">
+              <input class="form-check-input tech-checkbox" type="checkbox" id="editNodeJS" value="Node JS" name="tech[]">
+              <label class="form-check-label" for="editNodeJS">Node JS</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input tech-checkbox" type="checkbox" id="editNextJS" value="Next JS" name="tech[]">
+              <label class="form-check-label" for="editNextJS">Next JS</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input tech-checkbox" type="checkbox" id="editReactJS" value="React JS" name="tech[]">
+              <label class="form-check-label" for="editReactJS">React JS</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input tech-checkbox" type="checkbox" id="editTypeScript" value="TypeScript" name="tech[]">
+              <label class="form-check-label" for="editTypeScript">TypeScript</label>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Upload New Image (optional)</label>
+            <input class="form-control" type="file" name="imageUpload" accept="image/*">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-outline-dark">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
     <!-- Scripts -->
     {{!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
     {{!-- <script type="module" src="/src/loadDummy.js"></script> --}}
     {{!-- <script type="module" src="/src/index.js"></script> --}}
+    <script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
+<script>
+  const editButtons = document.querySelectorAll(".edit-btn");
+  const editModal = new bootstrap.Modal(document.getElementById("editModal"));
+  const editForm = document.getElementById("editForm");
+
+  editButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const projectId = button.getAttribute("data-id");
+      const name = button.getAttribute("data-name");
+      const start = button.getAttribute("data-start");
+      const end = button.getAttribute("data-end");
+      const desc = button.getAttribute("data-description");
+
+      document.getElementById("editProjectId").value = projectId;
+      document.getElementById("editProjectName").value = name;
+      document.getElementById("editStartDate").value = start;
+      document.getElementById("editEndDate").value = end;
+      document.getElementById("editDescription").value = desc;
+
+      // Set action URL
+      editForm.action = `/task4/edit/${projectId}?_method=PATCH`;
+
+      // Reset checkbox dulu
+      document.querySelectorAll(".tech-checkbox").forEach(cb => cb.checked = false);
+
+      // Cek checkbox dari isi HTML
+      const techHTML = button.getAttribute("data-tech");
+      if (techHTML.includes("Node JS")) document.getElementById("editNodeJS").checked = true;
+      if (techHTML.includes("Next JS")) document.getElementById("editNextJS").checked = true;
+      if (techHTML.includes("React JS")) document.getElementById("editReactJS").checked = true;
+      if (techHTML.includes("TypeScript")) document.getElementById("editTypeScript").checked = true;
+
+      editModal.show();
+    });
+  });
+</script>
+
   </body>
 </html>
