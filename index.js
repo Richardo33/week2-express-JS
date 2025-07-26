@@ -3,8 +3,7 @@ import { Pool } from 'pg'
 import multer from "multer";
 import bcrypt from "bcrypt";
 import session from "express-session";
-
-const upload = multer(); // tidak menyimpan file untuk sekarang
+import path from "path";
 
 
 const db = new Pool({
@@ -28,10 +27,13 @@ app.use("/assets", express.static("src/assets"));
 
 app.use(
   session({
-    secret: "rahasia-super-aman", // ganti ini jadi rahasia produksi
+    secret: "super-secret",
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false } // jika di HTTPS, ubah ke true
+    cookie: {
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60,
+    }, // jika di HTTPS, ubah ke true
   })
 );
 
@@ -39,7 +41,6 @@ app.use((req, res, next) => {
   res.locals.user = req.session.user || null;
   next();
 });
-
 
 app.use(express.urlencoded({ extended: false }));
 
@@ -53,20 +54,30 @@ function getTechIconPath(techName) {
   return map[techName] || '/assets/uploads/icon/monster.webp';
 }
 
-app.get("/register", (req, res) => {
-  res.render("register");
-});
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './src/assets/uploads/images')
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.fieldname + Date.now() + path.extname(file.originalname))
+  }
+})
 
-app.get("/login", (req, res) => {
-  res.render("login");
-});
+const upload = multer({ storage: multer.memoryStorage() });
 
-app.get("/logout", (req, res) => {
-  req.session.destroy(() => {
-    res.redirect("/login");
-  });
-});
+// ========== ROUTING ==========
+app.get("/", login);
+app.get("/login", login);
+app.post("/login", handleLogin);
 
+app.get("/register", register);
+app.post("/register", handleRegister);
+
+app.get("/logout", logout);
+
+app.get("/task4", mustLoggin, task4Page);
+app.post("/task4", mustLoggin, upload.single('imageUpload'), handleCreateProject);
+app.post("/task4/delete/:id", mustLoggin, handleDeleteProject);
 
 app.get("/task2", (req, res) => {
   res.render("task2");
@@ -83,10 +94,12 @@ function mustLoggin(req, res, next) {
   next();
 }
 
+function login(req, res) {
+  res.render("login");
+}
 
-app.post("/login", async (req, res) => {
+async function handleLogin(req, res) {
   const { email, password } = req.body;
-
   try {
     const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
     if (result.rows.length === 0) {
@@ -100,7 +113,6 @@ app.post("/login", async (req, res) => {
       return res.render("login", { error: "Password salah" });
     }
 
-    // Simpan data user di session
     req.session.user = {
       id: user.user_id,
       name: user.name,
@@ -112,40 +124,69 @@ app.post("/login", async (req, res) => {
     console.error("Gagal login:", error);
     res.status(500).send("Internal Server Error");
   }
-});
+}
 
-app.post("/register", async (req, res) => {
+function register(req, res) {
+  res.render("register");
+}
+async function handleRegister(req, res) {
   const { name, email, password } = req.body;
-
   try {
-    // Cek apakah email sudah digunakan
     const existingUser = await db.query("SELECT * FROM users WHERE email = $1", [email]);
     if (existingUser.rows.length > 0) {
-      return res.render("register", { error: "Email is already registered." });
+      return res.render("register", { error: "Email sudah Terdaftar" });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Simpan ke database
     await db.query(
       `INSERT INTO users (name, email, password) VALUES ($1, $2, $3)`,
       [name, email, hashedPassword]
     );
 
-    // Redirect ke login
     res.redirect("/login");
   } catch (error) {
     console.error("Gagal register:", error);
     res.status(500).send("Internal Server Error");
   }
+}
+
+function logout(req, res) {
+  req.session.destroy(() => {
+    res.clearCookie('connect.sid');
+    res.redirect("/login");
+  });
+}
+
+app.get('/image/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await db.query(
+      'SELECT image_data, image_mimetype FROM projects WHERE project_id = $1',
+      [id]
+    );
+
+    if (result.rows.length === 0 || !result.rows[0].image_data) {
+      return res.status(404).send('Image not found');
+    }
+
+    const { image_data, image_mimetype } = result.rows[0];
+    res.set('Content-Type', image_mimetype || 'image/png'); // default fallback
+    res.send(image_data);
+  } catch (error) {
+    console.error('Gagal mengambil gambar:', error);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
-app.get("/task4", mustLoggin, async (req, res) => {
+
+
+async function task4Page(req, res) {
   try {
     const userId = req.session.user?.id;
 
-    // Ambil hanya project milik user yang login
+
     const projectsResult = await db.query(
       `SELECT * FROM projects WHERE user_id = $1 ORDER BY created_at DESC`,
       [userId]
@@ -170,7 +211,6 @@ app.get("/task4", mustLoggin, async (req, res) => {
       };
     });
 
-    // Ambil teknologi untuk project milik user ini
     const techMapResult = await db.query(
       `
       SELECT pt.project_id, t.tech_name
@@ -199,9 +239,7 @@ app.get("/task4", mustLoggin, async (req, res) => {
       return {
         ...project,
         techHTML: techIconsHTML,
-        imgSrc: project.image_url
-          ? `/${project.image_url}`  // pastikan path ini sesuai
-          : `/assets/uploads/icon/monster.webp`
+        imgSrc: `/image/${project.project_id}` || '/assets/uploads/icon/monster.webp'
       };
     });
 
@@ -210,25 +248,32 @@ app.get("/task4", mustLoggin, async (req, res) => {
     console.error("Gagal menampilkan project:", error);
     res.status(500).send("Internal Server Error");
   }
-});
+}
 
-app.post("/task4", mustLoggin, upload.single('imageUpload'), async (req, res) => {
+async function handleCreateProject(req, res) {
   const { projectName, startDate, endDate, description, tech } = req.body;
   const userId = req.session.user?.id;
 
-  if (!userId) {
-    return res.status(401).send("Unauthorized. Please login first.");
-  }
-
+  if (!userId) return res.status(401).send("Unauthorized");
   const client = await db.connect();
   try {
     await client.query("BEGIN");
+    const imageBuffer = req.file ? req.file.buffer : null;
+    const imageMimeType = req.file ? req.file.mimetype : null;
 
     const result = await client.query(
-      `INSERT INTO projects (project_name, start_date, end_date, description, user_id)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO projects (project_name, start_date, end_date, description, user_id, image_data, image_mimetype)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING project_id`,
-      [projectName, startDate, endDate, description, userId]
+      [
+        projectName,
+        startDate,
+        endDate,
+        description,
+        userId,
+        imageBuffer,
+        imageMimeType
+      ]
     );
 
     const projectId = result.rows[0].project_id;
@@ -258,9 +303,9 @@ app.post("/task4", mustLoggin, upload.single('imageUpload'), async (req, res) =>
   } finally {
     client.release();
   }
-});
+}
 
-app.post("/task4/delete/:id", mustLoggin, async (req, res) => {
+async function handleDeleteProject(req, res) {
   const { id } = req.params;
   const userId = req.session.user.id;
 
@@ -271,7 +316,6 @@ app.post("/task4/delete/:id", mustLoggin, async (req, res) => {
     );
 
     if (result.rowCount === 0) {
-      // Tidak ada project terhapus → kemungkinan bukan milik user ini
       return res.status(403).send("Kamu tidak memiliki izin untuk menghapus project ini.");
     }
 
@@ -280,7 +324,8 @@ app.post("/task4/delete/:id", mustLoggin, async (req, res) => {
     console.error("Gagal menghapus project:", error);
     res.status(500).send("Gagal menghapus project");
   }
-});
+}
+
 
 
 app.listen(port, () => {

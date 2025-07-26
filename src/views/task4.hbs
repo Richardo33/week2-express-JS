@@ -32,6 +32,10 @@
         textarea {
             resize: none;
         }
+        .dropdown-menu {
+          z-index: 1055; /* lebih tinggi dari modal backdrop (z-index: 1050) */
+        }
+
     </style>
   </head>
   <body>
@@ -329,9 +333,7 @@
     {{!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
     {{!-- <script type="module" src="/src/loadDummy.js"></script> --}}
     {{!-- <script type="module" src="/src/index.js"></script> --}}
-    <script
-  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-></script>
+
 <script>
   const editButtons = document.querySelectorAll(".edit-btn");
   const editModal = new bootstrap.Modal(document.getElementById("editModal"));
@@ -350,14 +352,11 @@
       document.getElementById("editStartDate").value = start;
       document.getElementById("editEndDate").value = end;
       document.getElementById("editDescription").value = desc;
-
-      // Set action URL
+ 
       editForm.action = `/task4/edit/${projectId}?_method=PATCH`;
 
-      // Reset checkbox dulu
       document.querySelectorAll(".tech-checkbox").forEach(cb => cb.checked = false);
 
-      // Cek checkbox dari isi HTML
       const techHTML = button.getAttribute("data-tech");
       if (techHTML.includes("Node JS")) document.getElementById("editNodeJS").checked = true;
       if (techHTML.includes("Next JS")) document.getElementById("editNextJS").checked = true;
